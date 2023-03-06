@@ -16,7 +16,7 @@ VERBOSE="$4"
 if [ ! -d "channel-artifacts" ]; then
 	mkdir channel-artifacts
 fi
-# 创建通道配置文件
+
 createChannelTx() {
 	set -x
 	configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/${CHANNEL_NAME}.tx -channelID $CHANNEL_NAME
@@ -24,7 +24,7 @@ createChannelTx() {
 	{ set +x; } 2>/dev/null
   verifyResult $res "Failed to generate channel configuration transaction..."
 }
-# 创建通道
+
 createChannel() {
 	setGlobals 1
 	# Poll in case the raft leader is not set yet
@@ -44,7 +44,6 @@ createChannel() {
 }
 
 # joinChannel ORG
-# 加入组织
 joinChannel() {
   FABRIC_CFG_PATH=$PWD/../config/
   ORG=$1
@@ -64,7 +63,7 @@ joinChannel() {
 	cat log.txt
 	verifyResult $res "After $MAX_RETRY attempts, peer0.org${ORG} has failed to join channel '$CHANNEL_NAME' "
 }
-# 设置锚节点
+
 setAnchorPeer() {
   ORG=$1
   docker exec cli ./scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME 

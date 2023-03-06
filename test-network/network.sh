@@ -21,8 +21,6 @@ export VERBOSE=false
 # Obtain CONTAINER_IDS and remove them
 # TODO Might want to make this optional - could clear other containers
 # This function is called when you bring a network down
-# 获取容器，并将其删除
-# 在关闭网络时调用
 function clearContainers() {
   CONTAINER_IDS=$(docker ps -a | awk '($2 ~ /dev-peer.*/) {print $1}')
   if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" == " " ]; then
@@ -35,7 +33,6 @@ function clearContainers() {
 # Delete any images that were generated as a part of this setup
 # specifically the following images are often left behind:
 # This function is called when you bring the network down
-# 移除镜像，在网络关闭时调用
 function removeUnwantedImages() {
   DOCKER_IMAGE_IDS=$(docker images | awk '($1 ~ /dev-peer.*/) {print $3}')
   if [ -z "$DOCKER_IMAGE_IDS" -o "$DOCKER_IMAGE_IDS" == " " ]; then
@@ -51,7 +48,6 @@ NONWORKING_VERSIONS="^1\.0\. ^1\.1\. ^1\.2\. ^1\.3\. ^1\.4\."
 # Do some basic sanity checking to make sure that the appropriate versions of fabric
 # binaries/images are available. In the future, additional checking for the presence
 # of go or other items could be added.
-# 进行一些健康性检查
 function checkPrereqs() {
   ## Check if your have cloned the peer binaries and configuration files.
   peer version > /dev/null 2>&1
@@ -134,17 +130,12 @@ function checkPrereqs() {
 # "organizations/ordererOrganizations" directory.
 
 # Create Organization crypto material using cryptogen or CAs
-# Cryptogen使用这些文件为每个文件生成加密材料
-# registerEnroll.sh脚本使用结构CA客户端创建身份
-
-# 使用cryptogen或CA创建组织加密材料
 function createOrgs() {
   if [ -d "organizations/peerOrganizations" ]; then
     rm -Rf organizations/peerOrganizations && rm -Rf organizations/ordererOrganizations
   fi
 
   # Create crypto material using cryptogen
-  # 使用cryptogen创建加密材料
   if [ "$CRYPTO" == "cryptogen" ]; then
     which cryptogen
     if [ "$?" -ne 0 ]; then
