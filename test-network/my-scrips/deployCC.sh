@@ -52,7 +52,7 @@ peer lifecycle chaincode querycommitted --channelID channel1 --name cc1 --cafile
 # 初始化
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C channel1 -n cc1 --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"InitLedger","Args":[]}'
 # 查询
-peer chaincode query -C channel1 -n cc1 -c '{"Args":["queryAllFarms"]}'
+peer chaincode query -C channel1 -n cc1 -c '{"Args":["queryAll"]}'
 
 
 ################################################################################

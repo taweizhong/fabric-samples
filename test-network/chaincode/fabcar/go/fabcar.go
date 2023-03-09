@@ -136,6 +136,25 @@ func (s *SmartContract) ChangeCarOwner(ctx contractapi.TransactionContextInterfa
 	return ctx.GetStub().PutState(carNumber, carAsBytes)
 }
 
+func (s *SmartContract) DeleteCars(ctx contractapi.TransactionContextInterface, id string) error {
+	exists, err := s.CarsExists(ctx, id)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the asset %s does not exist", id)
+	}
+
+	return ctx.GetStub().DelState(id)
+}
+func (s *SmartContract) CarExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
+	assetJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state: %v", err)
+	}
+
+	return assetJSON != nil, nil
+}
 func main() {
 
 	chaincode, err := contractapi.NewChaincode(new(SmartContract))

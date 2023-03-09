@@ -12,6 +12,7 @@ type SmartContract struct {
 	contractapi.Contract
 }
 
+// 屠宰场名称、进厂检疫、清洗消毒、屠宰时间、宰后检疫、分割信息
 type Process struct {
 	SlaughterhouseName      string `json:"slaughterhouseName"`
 	EntryQuarantine         string `json:"entryQuarantine"`
@@ -28,11 +29,11 @@ type QueryResult struct {
 
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	Process := []Process{
-		Process{"Slaughterhouse1", "true", "true", "2022.2.1", "true", "Ketone body"},
+		Process{"兰州肉多多有限责任公司", "true", "true", "2022.2.1", "true", "酮体"},
 	}
 	for i, item := range Process {
 		itemAsBytes, _ := json.Marshal(item)
-		err := ctx.GetStub().PutState("FARM"+strconv.Itoa(i), itemAsBytes)
+		err := ctx.GetStub().PutState("Process"+strconv.Itoa(i), itemAsBytes)
 
 		if err != nil {
 			return fmt.Errorf("Failed to put to world state. %s", err.Error())
@@ -42,8 +43,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	return nil
 }
 
-// CreateFarm adds a new farm to the world state with given details
-func (s *SmartContract) CreateFarm(ctx contractapi.TransactionContextInterface, processNumber string, slaughterhouseName string, entryQuarantine string, cleaning string,
+func (s *SmartContract) Create(ctx contractapi.TransactionContextInterface, processNumber string, slaughterhouseName string, entryQuarantine string, cleaning string,
 	slaughteringTime string, quarantine string, segmentationInformation string) error {
 	process := Process{
 		SlaughterhouseName:      slaughterhouseName,
@@ -59,8 +59,7 @@ func (s *SmartContract) CreateFarm(ctx contractapi.TransactionContextInterface, 
 	return ctx.GetStub().PutState(processNumber, itemAsBytes)
 }
 
-// QueryFarm returns the car stored in the world state with given id
-func (s *SmartContract) QueryFarm(ctx contractapi.TransactionContextInterface, processNumber string) (*Process, error) {
+func (s *SmartContract) Query(ctx contractapi.TransactionContextInterface, processNumber string) (*Process, error) {
 	itemAsBytes, err := ctx.GetStub().GetState(processNumber)
 
 	if err != nil {
@@ -77,8 +76,7 @@ func (s *SmartContract) QueryFarm(ctx contractapi.TransactionContextInterface, p
 	return process, nil
 }
 
-// QueryAllFarms returns all cars found in world state
-func (s *SmartContract) QueryAllFarms(ctx contractapi.TransactionContextInterface) ([]QueryResult, error) {
+func (s *SmartContract) QueryAll(ctx contractapi.TransactionContextInterface) ([]QueryResult, error) {
 	startKey := ""
 	endKey := ""
 
@@ -113,20 +111,25 @@ func (s *SmartContract) QueryAllFarms(ctx contractapi.TransactionContextInterfac
 	return results, nil
 }
 
-// ChangeCarOwner updates the owner field of car with given id in world state
-//func (s *SmartContract) ChangeCarOwner(ctx contractapi.TransactionContextInterface, carNumber string, newOwner string) error {
-//	car, err := s.QueryCar(ctx, carNumber)
-//
-//	if err != nil {
-//		return err
-//	}
-//
-//	car.Owner = newOwner
-//
-//	carAsBytes, _ := json.Marshal(car)
-//
-//	return ctx.GetStub().PutState(carNumber, carAsBytes)
-//}
+func (s *SmartContract) Delete(ctx contractapi.TransactionContextInterface, id string) error {
+	exists, err := s.ProcessExists(ctx, id)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the asset %s does not exist", id)
+	}
+
+	return ctx.GetStub().DelState(id)
+}
+func (s *SmartContract) ProcessExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
+	assetJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state: %v", err)
+	}
+
+	return assetJSON != nil, nil
+}
 
 func main() {
 

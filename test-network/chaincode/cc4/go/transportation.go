@@ -12,6 +12,7 @@ type SmartContract struct {
 	contractapi.Contract
 }
 
+// 运输工具牌号、运输工具消毒证明、运输起止日期和位置、运输人员、运输数量等信息
 type Transportation struct {
 	BrandTransport           string `json:"brandTransport"`
 	SterilizationCertificate string `json:"sterilizationCertificate"`
@@ -42,8 +43,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	return nil
 }
 
-// CreateFarm adds a new farm to the world state with given details
-func (s *SmartContract) CreateFarm(ctx contractapi.TransactionContextInterface, transportationNumber string,
+func (s *SmartContract) Create(ctx contractapi.TransactionContextInterface, transportationNumber string,
 	brandTransport string, sterilizationCertificate string, startingEnding string,
 	date string, personnel string, quantity string) error {
 	transportation := Transportation{
@@ -60,8 +60,7 @@ func (s *SmartContract) CreateFarm(ctx contractapi.TransactionContextInterface, 
 	return ctx.GetStub().PutState(transportationNumber, itemAsBytes)
 }
 
-// QueryFarm returns the car stored in the world state with given id
-func (s *SmartContract) QueryFarm(ctx contractapi.TransactionContextInterface, storageNumber string) (*Transportation, error) {
+func (s *SmartContract) Query(ctx contractapi.TransactionContextInterface, storageNumber string) (*Transportation, error) {
 	itemAsBytes, err := ctx.GetStub().GetState(storageNumber)
 
 	if err != nil {
@@ -78,8 +77,7 @@ func (s *SmartContract) QueryFarm(ctx contractapi.TransactionContextInterface, s
 	return transportation, nil
 }
 
-// QueryAllFarms returns all cars found in world state
-func (s *SmartContract) QueryAllFarms(ctx contractapi.TransactionContextInterface) ([]QueryResult, error) {
+func (s *SmartContract) QueryAll(ctx contractapi.TransactionContextInterface) ([]QueryResult, error) {
 	startKey := ""
 	endKey := ""
 
@@ -114,20 +112,25 @@ func (s *SmartContract) QueryAllFarms(ctx contractapi.TransactionContextInterfac
 	return results, nil
 }
 
-// ChangeCarOwner updates the owner field of car with given id in world state
-//func (s *SmartContract) ChangeCarOwner(ctx contractapi.TransactionContextInterface, carNumber string, newOwner string) error {
-//	car, err := s.QueryCar(ctx, carNumber)
-//
-//	if err != nil {
-//		return err
-//	}
-//
-//	car.Owner = newOwner
-//
-//	carAsBytes, _ := json.Marshal(car)
-//
-//	return ctx.GetStub().PutState(carNumber, carAsBytes)
-//}
+func (s *SmartContract) Delete(ctx contractapi.TransactionContextInterface, id string) error {
+	exists, err := s.TransportationExists(ctx, id)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the asset %s does not exist", id)
+	}
+
+	return ctx.GetStub().DelState(id)
+}
+func (s *SmartContract) TransportationExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
+	assetJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state: %v", err)
+	}
+
+	return assetJSON != nil, nil
+}
 
 func main() {
 

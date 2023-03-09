@@ -12,6 +12,7 @@ type SmartContract struct {
 	contractapi.Contract
 }
 
+//养殖场名称、地址、营业执照、养殖者姓名、养殖时间、出栏日期
 type Farm struct {
 	FarmName     string `json:"make"`
 	Address      string `json:"model"`
@@ -26,13 +27,14 @@ type QueryResult struct {
 	Record *Farm
 }
 
+// 初始化账本
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	Farms := []Farm{
-		Farm{"Farm1", "gansu", "xxx", "zhangsan", "2022.2.1", "2022.10.23"},
+		Farm{"榆中肉牛养殖场", "甘肃省兰州市", "446523465768", "刘", "2022.2.1", "2022.10.23"},
 	}
 	for i, farm := range Farms {
 		farmAsBytes, _ := json.Marshal(farm)
-		err := ctx.GetStub().PutState("FARM"+strconv.Itoa(i), farmAsBytes)
+		err := ctx.GetStub().PutState("Farm"+strconv.Itoa(i), farmAsBytes)
 
 		if err != nil {
 			return fmt.Errorf("Failed to put to world state. %s", err.Error())
@@ -42,8 +44,8 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	return nil
 }
 
-// CreateFarm adds a new farm to the world state with given details
-func (s *SmartContract) CreateFarm(ctx contractapi.TransactionContextInterface, farmNumber string, farmName string, address string, license string, owner string, breedingTime string, releaseDate string) error {
+// 添加农场
+func (s *SmartContract) Create(ctx contractapi.TransactionContextInterface, farmNumber string, farmName string, address string, license string, owner string, breedingTime string, releaseDate string) error {
 	farm := Farm{
 		FarmName:     farmName,
 		Address:      address,
@@ -53,13 +55,13 @@ func (s *SmartContract) CreateFarm(ctx contractapi.TransactionContextInterface, 
 		ReleaseDate:  releaseDate,
 	}
 
-	carAsBytes, _ := json.Marshal(farm)
+	farmAsBytes, _ := json.Marshal(farm)
 
-	return ctx.GetStub().PutState(farmNumber, carAsBytes)
+	return ctx.GetStub().PutState(farmNumber, farmAsBytes)
 }
 
-// QueryFarm returns the car stored in the world state with given id
-func (s *SmartContract) QueryFarm(ctx contractapi.TransactionContextInterface, farmNumber string) (*Farm, error) {
+// 查询一个农场
+func (s *SmartContract) Query(ctx contractapi.TransactionContextInterface, farmNumber string) (*Farm, error) {
 	farmAsBytes, err := ctx.GetStub().GetState(farmNumber)
 
 	if err != nil {
@@ -76,8 +78,8 @@ func (s *SmartContract) QueryFarm(ctx contractapi.TransactionContextInterface, f
 	return farm, nil
 }
 
-// QueryAllFarms returns all cars found in world state
-func (s *SmartContract) QueryAllFarms(ctx contractapi.TransactionContextInterface) ([]QueryResult, error) {
+// 查询所有的农场
+func (s *SmartContract) QueryAll(ctx contractapi.TransactionContextInterface) ([]QueryResult, error) {
 	startKey := ""
 	endKey := ""
 
@@ -112,20 +114,25 @@ func (s *SmartContract) QueryAllFarms(ctx contractapi.TransactionContextInterfac
 	return results, nil
 }
 
-// ChangeCarOwner updates the owner field of car with given id in world state
-//func (s *SmartContract) ChangeCarOwner(ctx contractapi.TransactionContextInterface, carNumber string, newOwner string) error {
-//	car, err := s.QueryCar(ctx, carNumber)
-//
-//	if err != nil {
-//		return err
-//	}
-//
-//	car.Owner = newOwner
-//
-//	carAsBytes, _ := json.Marshal(car)
-//
-//	return ctx.GetStub().PutState(carNumber, carAsBytes)
-//}
+func (s *SmartContract) Delete(ctx contractapi.TransactionContextInterface, id string) error {
+	exists, err := s.FarmExists(ctx, id)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the asset %s does not exist", id)
+	}
+
+	return ctx.GetStub().DelState(id)
+}
+func (s *SmartContract) FarmExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
+	assetJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state: %v", err)
+	}
+
+	return assetJSON != nil, nil
+}
 
 func main() {
 

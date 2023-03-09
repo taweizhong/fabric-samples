@@ -1,0 +1,2 @@
+Installed chaincodes on peer:
+Package ID: cc5:b4a031371f42223e89128f1f3cc09b6c5b7548bd189459a5f997bebe3119e201, Label: cc5

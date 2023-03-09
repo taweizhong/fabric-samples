@@ -21,4 +21,4 @@ do
   configtxgen -profile TwoOrgsChannel${i} -outputCreateChannelTx ./channel-artifacts/channel${i}.tx -channelID channel${i}
 done
 
-. ./ccp.sh
+. ./my-scrips/ccp.sh

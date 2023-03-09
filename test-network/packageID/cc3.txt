@@ -1,0 +1,2 @@
+Installed chaincodes on peer:
+Package ID: cc3:1f854022be68fcd46760308f98d1382963eb549b5b2b9f63e4b0766a6d6a96d1, Label: cc3
