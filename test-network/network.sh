@@ -258,7 +258,7 @@ function createConsortium() {
 
 # After we create the org crypto material and the system channel genesis block,
 # we can now bring up the peers and ordering service. By default, the base
-# file for creating the network is "docker-compose-test-net.yaml" in the ``docker``
+# file for creating the network is "docker-compose.yaml" in the ``docker``
 # folder. This file defines the environment variables and file mounts that
 # point the crypto material and genesis block that were created in earlier.
 
